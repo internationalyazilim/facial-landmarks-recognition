@@ -217,6 +217,34 @@ body.modal-acik{overflow:hidden}
 .ipucu{font-size:13px;color:var(--soluk);margin:10px 0 0}
 .modal-alt{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:16px}
 
+/* AYARLAR */
+.ust-sag{display:flex;align-items:center;gap:8px}
+.tel-btn[hidden]{display:none}
+.ayar-btn{border:1px solid var(--cizgi);background:#fff;color:var(--mavi);width:44px;height:44px;border-radius:12px;display:grid;place-items:center;cursor:pointer;flex:none}
+.ayar-kutu{max-width:560px;display:flex;flex-direction:column;height:92vh;padding-bottom:0}
+@media(min-width:600px){.ayar-kutu{height:auto;max-height:90vh}}
+.ayar-tabs{margin:6px 0 0;flex:none}
+.ayar-tabs .tab{padding:9px 4px;font-size:14px}
+.ayar-icerik{flex:1;overflow:auto;padding:4px 2px 14px;-webkit-overflow-scrolling:touch}
+.ayar-alt{flex:none;position:sticky;bottom:0;background:#fff;padding:12px 0 calc(14px + env(safe-area-inset-bottom));margin-top:0;border-top:1px solid var(--cizgi)}
+.alan select.tam,select.tam{display:block;width:100%;margin-top:6px;border:2px solid var(--cizgi);border-radius:10px;padding:11px 12px;background:#fff;font-weight:400}
+.tam{width:100%;margin-top:10px}
+.ed-satir{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px dashed var(--cizgi)}
+.ed-ad{flex:1;min-width:0;display:grid;gap:4px}
+.ed-ad b{font-size:15px;line-height:1.25}
+.ed-ad small{color:var(--soluk);font-size:12px}
+.ed-satir input{width:100%;border:2px solid var(--cizgi);border-radius:10px;padding:9px 10px;background:#fff;min-width:0}
+.ed-satir input:focus{border-color:var(--mavi);outline:none}
+.ed-satir input.ed-kat{font-size:13px;padding:5px 10px;color:var(--soluk);border-width:1px}
+.ed-fiyat{flex:none;width:112px;display:flex;align-items:center;gap:4px}
+.ed-fiyat input{text-align:right;font-weight:700}
+.ed-fiyat span{color:var(--soluk)}
+.ed-sil{flex:none;border:0;background:#fdeaea;width:40px;height:40px;border-radius:10px;cursor:pointer;font-size:16px}
+.btn.tehlike{background:#fff;color:var(--kirmizi);border:2px solid var(--kirmizi);margin-top:24px}
+.dosya-btn{display:block;text-align:center}
+.bildirim{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:80;background:var(--metin);color:#fff;padding:10px 18px;border-radius:999px;font-weight:600;box-shadow:var(--golge)}
+.bildirim[hidden]{display:none}
+
 </style>
 </head>
 <body>
@@ -229,10 +257,15 @@ body.modal-acik{overflow:hidden}
       </span>
       <div>
         <strong>Yedek Parça & İşçilik</strong>
-        <small>Fiyat Listesi</small>
+        <small id="altBaslik">Fiyat Listesi</small>
       </div>
     </div>
-    <a class="tel-btn" id="telBtn" href="#">📞 <span id="telTxt"></span></a>
+    <div class="ust-sag">
+      <a class="tel-btn" id="telBtn" href="#" hidden>📞 <span id="telTxt"></span></a>
+      <button type="button" class="ayar-btn" id="ayarBtn" aria-label="Ayarlar ve fiyat düzenleme" title="Ayarlar / Fiyat düzenle">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.3 7.3 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.3 7.3 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.3 7.3 0 0 0 1.7 1L11 21h4l.4-2.9a7.3 7.3 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5A3.5 3.5 0 1 1 13 8.5a3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -374,13 +407,37 @@ body.modal-acik{overflow:hidden}
   </form>
 </div>
 
+<!-- AYARLAR / FİYAT DÜZENLE -->
+<div class="modal" id="ayarModal" hidden>
+  <div class="modal-kutu ayar-kutu" role="dialog" aria-modal="true" aria-labelledby="ayarBaslik">
+    <div class="modal-bas">
+      <h2 id="ayarBaslik">⚙️ Ayarlar & Fiyatlar</h2>
+      <button type="button" class="kapat" data-ayar-kapat aria-label="Kapat">✕</button>
+    </div>
+    <div class="tabs ayar-tabs">
+      <button type="button" class="tab active" data-ayar-tab="genel">Genel</button>
+      <button type="button" class="tab" data-ayar-tab="parca">Parça</button>
+      <button type="button" class="tab" data-ayar-tab="iscilik">İşçilik</button>
+      <button type="button" class="tab" data-ayar-tab="yedek">Yedek</button>
+    </div>
+    <div id="ayarIcerik" class="ayar-icerik"></div>
+    <div class="modal-alt ayar-alt">
+      <button type="button" class="btn ghost" data-ayar-kapat>Vazgeç</button>
+      <button type="button" class="btn" id="ayarKaydet">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<div class="bildirim" id="bildirim" role="status" hidden></div>
+
 <!-- YAZDIRMA ŞABLONU -->
 <div id="yazdirAlan" class="yazdir-alan"></div>
 
 <script>
 /* =========================================================
-   FİYAT LİSTESİ — SADECE BU DOSYAYI DÜZENLEYEREK FİYATLARI
-   GÜNCELLEYEBİLİRSİN. (Fiyatlar TL, KDV hariç girilir.)
+   VARSAYILAN FİYAT LİSTESİ (Fiyatlar TL, KDV hariç)
+   NOT: Fiyatları sayfadaki ⚙️ Ayarlar ekranından değiştirmek
+   daha kolay; orada kaydedilenler bu dosyanın önüne geçer.
    ---------------------------------------------------------
    MARKALAR : selectbox'ta çıkan markalar
      - logo   : logolar/ klasöründeki orijinal logo dosyası
@@ -392,9 +449,8 @@ body.modal-acik{overflow:hidden}
    ========================================================= */
 
 window.AYARLAR = {
-  firmaAdi: "Doğalgaz Sobası Servisi",
-  telefon: "0544 381 93 01",
-  whatsapp: "905443819301",
+  firmaAdi: "",           // sayfadaki ⚙️ Ayarlar'dan da girilebilir
+  telefon: "",            // boşsa üstteki arama butonu gizlenir
   kdvOrani: 20,          // %
   kdvVarsayilan: false,  // sayfa açılınca KDV eklensin mi
   paraBirimi: "₺"
@@ -463,25 +519,42 @@ window.ISCILIK = [
 (function () {
   "use strict";
 
-  var A = window.AYARLAR || {};
+  var kopya = function (o) { return JSON.parse(JSON.stringify(o)); };
+  /* ⚙️ Ayarlar ekranında kaydedilenler fiyatlar.js'nin önüne geçer */
+  var DUZEN_KAYIT = "sobaDuzen_v1";
+  var duzen = {};
+  try { duzen = JSON.parse(localStorage.getItem(DUZEN_KAYIT) || "{}") || {}; } catch (e) { duzen = {}; }
+  var A, PARCALAR, ISCILIK, PB;
+  function duzenUygula() {
+    A = Object.assign({}, window.AYARLAR || {}, duzen.ayarlar || {});
+    PARCALAR = duzen.parcalar ? kopya(duzen.parcalar) : kopya(window.PARCALAR || []);
+    ISCILIK = duzen.iscilik ? kopya(duzen.iscilik) : kopya(window.ISCILIK || []);
+    PB = A.paraBirimi || "₺";
+  }
+  duzenUygula();
   var SABIT_MARKALAR = window.MARKALAR || [];
   var MARKA_KAYIT = "sobaMarkalar_v1";
   var ekMarkalar = [];
   try { ekMarkalar = JSON.parse(localStorage.getItem(MARKA_KAYIT) || "[]") || []; } catch (e) { ekMarkalar = []; }
   var MARKALAR = [];
   function markalariBirlestir() {
-    MARKALAR = SABIT_MARKALAR.concat(ekMarkalar.map(function (m) {
+    var mo = duzen.markalar || {};
+    MARKALAR = SABIT_MARKALAR.map(function (m) { return Object.assign({}, m); }).concat(ekMarkalar.map(function (m) {
       return { id: m.id, ad: m.ad, logo: m.logo || "", renk: m.renk || "#1e40af", carpan: +m.carpan || 1, ozel: {}, gizle: [], ek: true };
-    }));
+    })).map(function (m) {
+      var o = mo[m.id];
+      if (o) {
+        if (o.carpan != null) m.carpan = +o.carpan;
+        m.ozel = Object.assign({}, m.ozel || {}, o.ozel || {});
+      }
+      return m;
+    });
   }
   function ekMarkaKaydet() {
     try { localStorage.setItem(MARKA_KAYIT, JSON.stringify(ekMarkalar)); return true; }
     catch (e) { alert("Kaydedilemedi: telefon hafızası dolu olabilir. Daha küçük bir logo deneyin."); return false; }
   }
   markalariBirlestir();
-  var PARCALAR = window.PARCALAR || [];
-  var ISCILIK = window.ISCILIK || [];
-  var PB = A.paraBirimi || "₺";
   var KAYIT = "sobaTeklif_v1";
 
   var $ = function (id) { return document.getElementById(id); };
@@ -794,7 +867,7 @@ window.ISCILIK = [
   /* ---------- WHATSAPP / YAZDIR ---------- */
   function teklifMetni() {
     var m = markaBul(durum.marka), t = hesapla(), s = [];
-    s.push("*" + (A.firmaAdi || "Teklif") + "*");
+    s.push("*" + (A.firmaAdi || "Yedek Parça & İşçilik Teklifi") + "*");
     if (m) s.push("Marka: " + m.ad);
     s.push("Tarih: " + new Date().toLocaleDateString("tr-TR"), "");
     [["parca", "YEDEK PARÇALAR"], ["iscilik", "İŞÇİLİK"]].forEach(function (g) {
@@ -807,7 +880,8 @@ window.ISCILIK = [
     s.push("Parça: " + tl(t.parca), "İşçilik: " + tl(t.isc));
     if (durum.indirim) s.push("İndirim: -" + tl(durum.indirim));
     if (durum.kdv) s.push("KDV (%" + A.kdvOrani + "): " + tl(t.kdv));
-    s.push("*TOPLAM: " + tl(t.genel) + "*", "", "📞 " + (A.telefon || ""));
+    s.push("*TOPLAM: " + tl(t.genel) + "*");
+    if (A.telefon) s.push("", "📞 " + A.telefon);
     return s.join("\n");
   }
   $("waGonder").addEventListener("click", function () {
@@ -828,8 +902,8 @@ window.ISCILIK = [
       (durum.kdv ? '<tr><td colspan="5" class="r">KDV (%' + A.kdvOrani + ')</td><td class="r">' + tl(t.kdv) + "</td></tr>" : "") +
       '<tr><td colspan="5" class="r">GENEL TOPLAM</td><td class="r">' + tl(t.genel) + "</td></tr>";
     $("yazdirAlan").innerHTML =
-      '<div class="ust"><div><h2 style="margin:0">' + esc(A.firmaAdi || "") + "</h2><div>Yedek Parça & İşçilik Teklifi</div><div>Tel: " +
-      esc(A.telefon || "") + " · " + new Date().toLocaleDateString("tr-TR") + "</div></div>" +
+      '<div class="ust"><div><h2 style="margin:0">' + esc(A.firmaAdi || "") + "</h2><div>Yedek Parça & İşçilik Teklifi</div><div>" +
+      (A.telefon ? "Tel: " + esc(A.telefon) + " · " : "") + new Date().toLocaleDateString("tr-TR") + "</div></div>" +
       (m ? '<div style="text-align:right">' + (m.logo ? '<img src="' + esc(m.logo) + '" alt="" onerror="this.remove()">' : "") + '<div><b>' + esc(m.ad) + "</b></div></div>" : "") +
       "</div><table><thead><tr><th>#</th><th>Kalem</th><th>Tür</th><th class='r'>Adet</th><th class='r'>Birim</th><th class='r'>Tutar</th></tr></thead><tbody>" +
       satirlar + "</tbody><tfoot>" + alt + "</tfoot></table>" +
@@ -839,10 +913,223 @@ window.ISCILIK = [
 
   $("abGor").addEventListener("click", function () { $("sepetPanel").scrollIntoView({ behavior: "smooth", block: "start" }); });
 
+  /* ---------- ⚙️ AYARLAR / FİYAT DÜZENLE ---------- */
+  var ayarModal = $("ayarModal"), taslak = null, ayarSekme = "genel", fiyatMarka = "";
+
+  function ayarAc() {
+    taslak = {
+      ayarlar: { firmaAdi: A.firmaAdi || "", telefon: A.telefon || "", kdvOrani: A.kdvOrani || 0 },
+      parcalar: kopya(PARCALAR), iscilik: kopya(ISCILIK), markalar: kopya(duzen.markalar || {})
+    };
+    fiyatMarka = ""; ayarSekme = "genel";
+    ayarModal.hidden = false; document.body.classList.add("modal-acik");
+    ayarCiz();
+  }
+  function ayarKapat() { ayarModal.hidden = true; document.body.classList.remove("modal-acik"); taslak = null; }
+  $("ayarBtn").addEventListener("click", ayarAc);
+  ayarModal.addEventListener("click", function (e) {
+    if (e.target === ayarModal || e.target.closest("[data-ayar-kapat]")) {
+      if (confirm("Kaydetmeden çıkılsın mı?")) ayarKapat();
+    }
+  });
+  document.querySelectorAll("[data-ayar-tab]").forEach(function (b) {
+    b.addEventListener("click", function () { ayarSekme = b.dataset.ayarTab; ayarCiz(); });
+  });
+
+  function satirInput(cls, deger, ekstra) {
+    return '<input class="' + cls + '" value="' + esc(deger) + '" ' + (ekstra || "") + ">";
+  }
+  function markaHesap(mid) {
+    var m = markaBul(mid); if (!m) return null;
+    var o = taslak.markalar[mid] || {};
+    var taban = (SABIT_MARKALAR.find(function (x) { return x.id === mid; }) || ekMarkalar.find(function (x) { return x.id === mid; }) || {});
+    return { m: m, carpan: o.carpan != null ? +o.carpan : (+taban.carpan || 1), ozel: Object.assign({}, taban.ozel || {}, o.ozel || {}) };
+  }
+
+  function ayarCiz() {
+    document.querySelectorAll("[data-ayar-tab]").forEach(function (b) { b.classList.toggle("active", b.dataset.ayarTab === ayarSekme); });
+    var h = "";
+    if (ayarSekme === "genel") {
+      h = '<label class="alan">Firma adı (teklifte ve WhatsApp mesajında görünür)' + satirInput("", taslak.ayarlar.firmaAdi, 'data-g="firmaAdi" placeholder="ör. Yılmaz Soba Servisi"') + "</label>" +
+        '<label class="alan">Telefon numaran' + satirInput("", taslak.ayarlar.telefon, 'data-g="telefon" type="tel" placeholder="05xx xxx xx xx"') + "</label>" +
+        '<p class="ipucu">Boş bırakırsan üstteki arama butonu görünmez.</p>' +
+        '<label class="alan">KDV oranı (%)' + satirInput("", taslak.ayarlar.kdvOrani, 'data-g="kdvOrani" type="number" min="0" max="100" inputmode="numeric"') + "</label>";
+    } else if (ayarSekme === "parca") {
+      h = '<label class="alan">Hangi fiyatı düzenliyorsun?<select id="fiyatMarkaSec" class="tam">' +
+        '<option value="">Ana fiyatlar (tüm markalar için)</option>' +
+        MARKALAR.map(function (m) { return '<option value="' + esc(m.id) + '"' + (fiyatMarka === m.id ? " selected" : "") + ">" + esc(m.ad) + " (markaya özel)</option>"; }).join("") +
+        "</select></label>";
+      if (!fiyatMarka) {
+        h += '<p class="ipucu">Buradaki fiyat tüm markalarda kullanılır. Markaya göre farklı fiyat için yukarıdan marka seç.</p>' +
+          taslak.parcalar.map(function (p, i) {
+            return '<div class="ed-satir"><div class="ed-ad">' + satirInput("", p.ad, 'data-p="' + i + '" data-f="ad" placeholder="Parça adı"') +
+              satirInput("ed-kat", p.kategori || "", 'data-p="' + i + '" data-f="kategori" placeholder="Kategori"') + "</div>" +
+              '<div class="ed-fiyat">' + satirInput("", p.fiyat, 'data-p="' + i + '" data-f="fiyat" type="number" min="0" inputmode="numeric"') + "<span>₺</span></div>" +
+              '<button type="button" class="ed-sil" data-p-sil="' + i + '" aria-label="Sil">🗑</button></div>';
+          }).join("") +
+          '<button type="button" class="btn ghost tam" id="parcaEkleBtn">+ Yeni parça ekle</button>';
+      } else {
+        var mh = markaHesap(fiyatMarka);
+        h += '<label class="alan">' + esc(mh.m.ad) + ' fiyat çarpanı' + satirInput("", mh.carpan, 'data-carpan="1" type="number" min="0.1" max="5" step="0.05" inputmode="decimal"') + "</label>" +
+          '<p class="ipucu">Çarpan 1 = ana fiyat, 1.10 = %10 pahalı. Bir parçaya elle fiyat yazarsan çarpan o parçaya uygulanmaz. Boş bırakırsan otomatik hesaplanır.</p>' +
+          taslak.parcalar.map(function (p) {
+            var oto = Math.round(((+p.fiyat || 0) * mh.carpan) / 10) * 10;
+            var deger = mh.ozel[p.id] != null ? mh.ozel[p.id] : "";
+            return '<div class="ed-satir"><div class="ed-ad"><b>' + esc(p.ad) + '</b><small>Otomatik: ' + tl(oto) + "</small></div>" +
+              '<div class="ed-fiyat">' + satirInput("", deger, 'data-mo="' + esc(p.id) + '" type="number" min="0" inputmode="numeric" placeholder="' + oto + '"') + "<span>₺</span></div></div>";
+          }).join("");
+      }
+    } else if (ayarSekme === "iscilik") {
+      h = '<p class="ipucu">İşçilik fiyatları tüm markalarda aynıdır.</p>' +
+        taslak.iscilik.map(function (x, i) {
+          return '<div class="ed-satir"><div class="ed-ad">' + satirInput("", x.ad, 'data-i="' + i + '" data-f="ad" placeholder="İşçilik adı"') + "</div>" +
+            '<div class="ed-fiyat">' + satirInput("", x.fiyat, 'data-i="' + i + '" data-f="fiyat" type="number" min="0" inputmode="numeric"') + "<span>₺</span></div>" +
+            '<button type="button" class="ed-sil" data-i-sil="' + i + '" aria-label="Sil">🗑</button></div>';
+        }).join("") +
+        '<button type="button" class="btn ghost tam" id="iscilikEkleBtn">+ Yeni işçilik ekle</button>';
+    } else if (ayarSekme === "yedek") {
+      h = '<p class="ipucu">Fiyatların ve eklediğin markalar bu telefonun tarayıcısında saklanır. Tarayıcı verisi silinirse kaybolmasın diye ara ara yedek dosyası indir.</p>' +
+        '<button type="button" class="btn tam" id="yedekIndir">⬇ Yedek dosyasını indir</button>' +
+        '<label class="btn ghost tam dosya-btn">⬆ Yedekten geri yükle<input type="file" id="yedekYukle" accept=".json,application/json" hidden></label>' +
+        '<button type="button" class="btn tehlike tam" id="sifirla">Varsayılan fiyatlara dön</button>';
+    }
+    $("ayarIcerik").innerHTML = h;
+  }
+
+  $("ayarIcerik").addEventListener("input", function (e) {
+    var t = e.target, d = t.dataset;
+    if (d.g) taslak.ayarlar[d.g] = d.g === "kdvOrani" ? Math.max(0, +t.value || 0) : t.value;
+    else if (d.p != null && d.f) taslak.parcalar[+d.p][d.f] = d.f === "fiyat" ? Math.max(0, +t.value || 0) : t.value;
+    else if (d.i != null && d.f) taslak.iscilik[+d.i][d.f] = d.f === "fiyat" ? Math.max(0, +t.value || 0) : t.value;
+    else if (d.carpan) {
+      var o = taslak.markalar[fiyatMarka] = taslak.markalar[fiyatMarka] || {};
+      o.carpan = Math.max(0.1, +t.value || 1);
+      // otomatik fiyat yazılarını güncelle (yazılan kutu bozulmasın diye tamamını çizmiyoruz)
+      var mh = markaHesap(fiyatMarka);
+      $("ayarIcerik").querySelectorAll("[data-mo]").forEach(function (inp) {
+        var p = taslak.parcalar.find(function (x) { return x.id === inp.dataset.mo; });
+        var oto = Math.round(((+p.fiyat || 0) * mh.carpan) / 10) * 10;
+        inp.placeholder = oto;
+        inp.closest(".ed-satir").querySelector("small").textContent = "Otomatik: " + tl(oto);
+      });
+    } else if (d.mo) {
+      var o2 = taslak.markalar[fiyatMarka] = taslak.markalar[fiyatMarka] || {};
+      o2.ozel = o2.ozel || {};
+      if (t.value === "") o2.ozel[d.mo] = null; else o2.ozel[d.mo] = Math.max(0, +t.value || 0);
+    }
+  });
+  $("ayarIcerik").addEventListener("change", function (e) {
+    if (e.target.id === "fiyatMarkaSec") { fiyatMarka = e.target.value; ayarCiz(); }
+    if (e.target.id === "yedekYukle") yedekYukle(e.target.files && e.target.files[0]);
+  });
+  $("ayarIcerik").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    if (b.id === "parcaEkleBtn") {
+      var son = taslak.parcalar[taslak.parcalar.length - 1];
+      taslak.parcalar.push({ id: "p_" + Date.now(), kategori: son ? son.kategori : "Diğer", ad: "", fiyat: 0 });
+      ayarCiz(); var ins = $("ayarIcerik").querySelectorAll('[data-f="ad"]'); ins[ins.length - 1].focus();
+    } else if (b.id === "iscilikEkleBtn") {
+      taslak.iscilik.push({ id: "i_" + Date.now(), ad: "", fiyat: 0 });
+      ayarCiz(); var ins2 = $("ayarIcerik").querySelectorAll('[data-f="ad"]'); ins2[ins2.length - 1].focus();
+    } else if (b.dataset.pSil != null) {
+      var p = taslak.parcalar[+b.dataset.pSil];
+      if (confirm('"' + (p.ad || "Bu parça") + '" silinsin mi?')) { taslak.parcalar.splice(+b.dataset.pSil, 1); ayarCiz(); }
+    } else if (b.dataset.iSil != null) {
+      var x = taslak.iscilik[+b.dataset.iSil];
+      if (confirm('"' + (x.ad || "Bu işçilik") + '" silinsin mi?')) { taslak.iscilik.splice(+b.dataset.iSil, 1); ayarCiz(); }
+    } else if (b.id === "yedekIndir") yedekIndir();
+    else if (b.id === "sifirla") {
+      if (!confirm("Tüm fiyat ve ayar değişikliklerin silinip varsayılana dönülsün mü?\n(Eklediğin markalar kalır)")) return;
+      duzen = {}; try { localStorage.removeItem(DUZEN_KAYIT); } catch (e2) {}
+      degisiklikleriYansit(); ayarKapat();
+    }
+  });
+
+  function temizMarkalar(mk) {
+    var sonuc = {};
+    Object.keys(mk || {}).forEach(function (id) {
+      var o = mk[id] || {}, ozel = {};
+      Object.keys(o.ozel || {}).forEach(function (k) { if (o.ozel[k] != null && o.ozel[k] !== "") ozel[k] = +o.ozel[k]; });
+      var t = {};
+      if (o.carpan != null) t.carpan = +o.carpan;
+      if (Object.keys(ozel).length) t.ozel = ozel;
+      if (Object.keys(t).length) sonuc[id] = t;
+    });
+    return sonuc;
+  }
+  function duzenKaydet() {
+    try { localStorage.setItem(DUZEN_KAYIT, JSON.stringify(duzen)); } catch (e) {}
+  }
+  function degisiklikleriYansit() {
+    duzenUygula(); markalariBirlestir(); markaListeCiz();
+    // sepetteki kalemlerin fiyatlarını yeni fiyatlara güncelle
+    durum.kalemler.forEach(function (x) {
+      var parca = x.key.split(":");
+      if (x.tur === "parca" && parca.length === 2) {
+        var m = markaBul(parca[0]), p = PARCALAR.find(function (y) { return y.id === parca[1]; });
+        if (m && p) { x.fiyat = parcaFiyat(p, m); x.ad = m.ad + " " + p.ad; }
+      } else if (x.key.indexOf("isc:") === 0) {
+        var i = ISCILIK.find(function (y) { return "isc:" + y.id === x.key; });
+        if (i) { x.fiyat = i.fiyat; x.ad = i.ad; }
+      }
+    });
+    kaydet(); basliklar(); ciz();
+  }
+
+  $("ayarKaydet").addEventListener("click", function () {
+    var bosParca = taslak.parcalar.some(function (p) { return !String(p.ad).trim(); });
+    var bosIsc = taslak.iscilik.some(function (p) { return !String(p.ad).trim(); });
+    if (bosParca || bosIsc) return alert("Adı boş kalan " + (bosParca ? "parça" : "işçilik") + " var. Adını yaz ya da 🗑 ile sil.");
+    taslak.parcalar.forEach(function (p) { p.ad = p.ad.trim(); p.kategori = String(p.kategori || "").trim() || "Diğer"; });
+    taslak.iscilik.forEach(function (p) { p.ad = p.ad.trim(); });
+    taslak.ayarlar.firmaAdi = String(taslak.ayarlar.firmaAdi).trim();
+    taslak.ayarlar.telefon = String(taslak.ayarlar.telefon).trim();
+    duzen = { ayarlar: taslak.ayarlar, parcalar: taslak.parcalar, iscilik: taslak.iscilik, markalar: temizMarkalar(taslak.markalar) };
+    duzenKaydet(); degisiklikleriYansit(); ayarKapat();
+    bildir("Kaydedildi ✓");
+  });
+
+  function yedekIndir() {
+    var veri = { surum: 1, tarih: new Date().toISOString(), duzen: duzen, ekMarkalar: ekMarkalar };
+    var blob = new Blob([JSON.stringify(veri, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "soba-fiyat-yedek-" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+  function yedekYukle(f) {
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var v = JSON.parse(r.result);
+        if (!v || typeof v.duzen !== "object") throw 0;
+        if (!confirm("Yedek yüklenecek, mevcut fiyatların yerine geçecek. Devam?")) return;
+        duzen = v.duzen || {}; duzenKaydet();
+        if (Array.isArray(v.ekMarkalar)) { ekMarkalar = v.ekMarkalar; ekMarkaKaydet(); }
+        degisiklikleriYansit(); ayarKapat(); bildir("Yedek yüklendi ✓");
+      } catch (e) { alert("Bu dosya geçerli bir yedek değil."); }
+    };
+    r.readAsText(f);
+  }
+
+  var bildirZaman;
+  function bildir(msj) {
+    var el = $("bildirim"); el.textContent = msj; el.hidden = false;
+    clearTimeout(bildirZaman); bildirZaman = setTimeout(function () { el.hidden = true; }, 2200);
+  }
+
+  function basliklar() {
+    $("telTxt").textContent = A.telefon || "";
+    $("telBtn").href = "tel:" + String(A.telefon || "").replace(/[^\d+]/g, "");
+    $("telBtn").hidden = !A.telefon;
+    $("altBaslik").textContent = A.firmaAdi || "Fiyat Listesi";
+    $("kdvOranTxt").textContent = A.kdvOrani || 0;
+  }
+
   /* ---------- BAŞLAT ---------- */
-  $("telTxt").textContent = A.telefon || "";
-  $("telBtn").href = "tel:" + String(A.telefon || "").replace(/\s/g, "");
-  $("kdvOranTxt").textContent = A.kdvOrani || 0;
+  basliklar();
   $("kdv").checked = durum.kdv;
   if (durum.indirim) $("indirim").value = durum.indirim;
   ciz();

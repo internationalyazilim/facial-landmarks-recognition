@@ -1,6 +1,7 @@
 /* =========================================================
-   FİYAT LİSTESİ — SADECE BU DOSYAYI DÜZENLEYEREK FİYATLARI
-   GÜNCELLEYEBİLİRSİN. (Fiyatlar TL, KDV hariç girilir.)
+   VARSAYILAN FİYAT LİSTESİ (Fiyatlar TL, KDV hariç)
+   NOT: Fiyatları sayfadaki ⚙️ Ayarlar ekranından değiştirmek
+   daha kolay; orada kaydedilenler bu dosyanın önüne geçer.
    ---------------------------------------------------------
    MARKALAR : selectbox'ta çıkan markalar
      - logo   : logolar/ klasöründeki orijinal logo dosyası
@@ -12,9 +13,8 @@
    ========================================================= */
 
 window.AYARLAR = {
-  firmaAdi: "Doğalgaz Sobası Servisi",
-  telefon: "0544 381 93 01",
-  whatsapp: "905443819301",
+  firmaAdi: "",           // sayfadaki ⚙️ Ayarlar'dan da girilebilir
+  telefon: "",            // boşsa üstteki arama butonu gizlenir
   kdvOrani: 20,          // %
   kdvVarsayilan: false,  // sayfa açılınca KDV eklensin mi
   paraBirimi: "₺"

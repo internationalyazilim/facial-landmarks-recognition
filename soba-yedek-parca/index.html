@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/style.css?v=2">
+  <link rel="stylesheet" href="assets/style.css?v=3">
 </head>
 <body>
 
@@ -21,10 +21,15 @@
       </span>
       <div>
         <strong>Yedek Parça & İşçilik</strong>
-        <small>Fiyat Listesi</small>
+        <small id="altBaslik">Fiyat Listesi</small>
       </div>
     </div>
-    <a class="tel-btn" id="telBtn" href="#">📞 <span id="telTxt"></span></a>
+    <div class="ust-sag">
+      <a class="tel-btn" id="telBtn" href="#" hidden>📞 <span id="telTxt"></span></a>
+      <button type="button" class="ayar-btn" id="ayarBtn" aria-label="Ayarlar ve fiyat düzenleme" title="Ayarlar / Fiyat düzenle">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.3 7.3 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.3 7.3 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.3 7.3 0 0 0 1.7 1L11 21h4l.4-2.9a7.3 7.3 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5A3.5 3.5 0 1 1 13 8.5a3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -166,10 +171,33 @@
   </form>
 </div>
 
+<!-- AYARLAR / FİYAT DÜZENLE -->
+<div class="modal" id="ayarModal" hidden>
+  <div class="modal-kutu ayar-kutu" role="dialog" aria-modal="true" aria-labelledby="ayarBaslik">
+    <div class="modal-bas">
+      <h2 id="ayarBaslik">⚙️ Ayarlar & Fiyatlar</h2>
+      <button type="button" class="kapat" data-ayar-kapat aria-label="Kapat">✕</button>
+    </div>
+    <div class="tabs ayar-tabs">
+      <button type="button" class="tab active" data-ayar-tab="genel">Genel</button>
+      <button type="button" class="tab" data-ayar-tab="parca">Parça</button>
+      <button type="button" class="tab" data-ayar-tab="iscilik">İşçilik</button>
+      <button type="button" class="tab" data-ayar-tab="yedek">Yedek</button>
+    </div>
+    <div id="ayarIcerik" class="ayar-icerik"></div>
+    <div class="modal-alt ayar-alt">
+      <button type="button" class="btn ghost" data-ayar-kapat>Vazgeç</button>
+      <button type="button" class="btn" id="ayarKaydet">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<div class="bildirim" id="bildirim" role="status" hidden></div>
+
 <!-- YAZDIRMA ŞABLONU -->
 <div id="yazdirAlan" class="yazdir-alan"></div>
 
-<script src="assets/fiyatlar.js?v=1"></script>
-<script src="assets/app.js?v=2"></script>
+<script src="assets/fiyatlar.js?v=2"></script>
+<script src="assets/app.js?v=3"></script>
 </body>
 </html>
