@@ -1,0 +1,10 @@
+ORİJİNAL LOGOLARI BU KLASÖRE AŞAĞIDAKİ İSİMLERLE KOY
+(sitende Servis sayfalarında kullandığın logo dosyalarının aynısı)
+
+sunfire.png      demirdokum.png   hosseven.png    fujiyama.png
+susler.png       eca.png          alarko.png      asroyal.png
+baymak.png       raks.png         delonghi.png
+
+- PNG (şeffaf arka plan) önerilir, ~300x120 px yeterli.
+- .jpg / .svg kullanacaksan assets/fiyatlar.js içindeki "logo:" yolunu değiştir.
+- Logo yüklenmezse sayfa marka adını renkli yazı olarak gösterir, bozulmaz.
