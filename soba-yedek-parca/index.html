@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Yedek Parça & İşçilik Fiyat Listesi | Doğalgaz Sobası Servisi</title>
+  <meta name="description" content="Doğalgaz sobası yedek parça ve işçilik fiyat listesi. Markanızı seçin, parçaları ekleyin, toplam tutarı anında görün.">
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=1">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <div class="brand">
+      <span class="flame" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M12 2c1 3.5-1.5 5.2-1.5 8 0 1.4 1 2.5 2.3 2.5 1.6 0 2.5-1.3 2.2-3.2 2.2 1.7 3.5 4 3.5 6.4C18.5 19.3 15.6 22 12 22s-6.5-2.7-6.5-6.3C5.5 10.2 12 7.5 12 2z"/></svg>
+      </span>
+      <div>
+        <strong>Yedek Parça & İşçilik</strong>
+        <small>Fiyat Listesi</small>
+      </div>
+    </div>
+    <a class="tel-btn" id="telBtn" href="#">📞 <span id="telTxt"></span></a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- MARKA SEÇİMİ -->
+  <section class="card marka-card">
+    <label class="lbl" for="markaBtn">Soba Markası</label>
+
+    <div class="mselect" id="mselect">
+      <button type="button" class="mselect-btn" id="markaBtn" aria-haspopup="listbox" aria-expanded="false">
+        <span class="mselect-val" id="markaVal"><span class="ph">Marka seçin…</span></span>
+        <svg class="chev" viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
+      </button>
+      <ul class="mselect-list" id="markaList" role="listbox" hidden></ul>
+    </div>
+
+    <!-- yedek: gerçek select (form/erişilebilirlik için) -->
+    <select id="markaSelect" class="sr-only" tabindex="-1" aria-hidden="true"></select>
+  </section>
+
+  <div class="grid">
+    <!-- SOL: LİSTELER -->
+    <div class="col-list">
+
+      <div id="bosDurum" class="card bos">
+        <div class="bos-ikon">🔧</div>
+        <p>Fiyatları görmek için yukarıdan <b>soba markasını</b> seçin.</p>
+      </div>
+
+      <div id="listeAlan" hidden>
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="parca" role="tab">Yedek Parçalar</button>
+          <button class="tab" data-tab="iscilik" role="tab">İşçilik</button>
+        </div>
+
+        <div class="arama">
+          <input type="search" id="arama" placeholder="Parça / işçilik ara…" autocomplete="off">
+        </div>
+
+        <section id="tab-parca" class="tabpanel">
+          <div class="secili-marka" id="seciliMarka"></div>
+          <div id="parcaListe"></div>
+        </section>
+
+        <section id="tab-iscilik" class="tabpanel" hidden>
+          <div id="iscilikListe"></div>
+        </section>
+
+        <details class="card ozel">
+          <summary>+ Listede olmayan kalem ekle</summary>
+          <form id="ozelForm" class="ozel-form">
+            <input id="ozelAd" placeholder="Kalem adı (ör. Özel parça)" required>
+            <input id="ozelFiyat" type="number" min="0" step="1" inputmode="numeric" placeholder="Fiyat ₺" required>
+            <select id="ozelTur">
+              <option value="parca">Parça</option>
+              <option value="iscilik">İşçilik</option>
+            </select>
+            <button type="submit" class="btn">Ekle</button>
+          </form>
+        </details>
+      </div>
+    </div>
+
+    <!-- SAĞ: SEPET / TEKLİF -->
+    <aside class="col-sepet" id="sepetPanel">
+      <div class="card sepet">
+        <div class="sepet-bas">
+          <h2>Teklif</h2>
+          <button type="button" class="link-btn" id="temizle">Temizle</button>
+        </div>
+        <div class="sepet-marka" id="sepetMarka"></div>
+
+        <div id="sepetBos" class="sepet-bos">Henüz kalem eklenmedi.</div>
+        <div id="sepetIcerik"></div>
+
+        <div class="toplamlar">
+          <div class="satir"><span>Parça Toplamı</span><b id="tParca">0 ₺</b></div>
+          <div class="satir"><span>İşçilik Toplamı</span><b id="tIscilik">0 ₺</b></div>
+          <div class="satir indirim-satir">
+            <label for="indirim">İndirim</label>
+            <div class="indirim-in"><input type="number" id="indirim" min="0" step="1" inputmode="numeric" placeholder="0"><span>₺</span></div>
+          </div>
+          <label class="satir kdv">
+            <span><input type="checkbox" id="kdv"> KDV ekle (%<span id="kdvOranTxt"></span>)</span>
+            <b id="tKdv">0 ₺</b>
+          </label>
+          <div class="satir genel"><span>GENEL TOPLAM</span><b id="tGenel">0 ₺</b></div>
+        </div>
+
+        <div class="aksiyon">
+          <button type="button" class="btn wa" id="waGonder">WhatsApp ile Gönder</button>
+          <button type="button" class="btn ghost" id="yazdir">Yazdır / PDF</button>
+        </div>
+        <p class="not">Fiyatlar bilgi amaçlıdır; arıza tespitinden sonra kesinleşir.</p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<!-- MOBİL ALT BAR -->
+<div class="altbar" id="altbar">
+  <div>
+    <small><span id="abAdet">0</span> kalem</small>
+    <strong id="abToplam">0 ₺</strong>
+  </div>
+  <button type="button" class="btn" id="abGor">Teklifi Gör</button>
+</div>
+
+<!-- YAZDIRMA ŞABLONU -->
+<div id="yazdirAlan" class="yazdir-alan"></div>
+
+<script src="assets/fiyatlar.js?v=1"></script>
+<script src="assets/app.js?v=1"></script>
+</body>
+</html>
