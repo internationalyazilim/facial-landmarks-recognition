@@ -2,7 +2,21 @@
   "use strict";
 
   var A = window.AYARLAR || {};
-  var MARKALAR = window.MARKALAR || [];
+  var SABIT_MARKALAR = window.MARKALAR || [];
+  var MARKA_KAYIT = "sobaMarkalar_v1";
+  var ekMarkalar = [];
+  try { ekMarkalar = JSON.parse(localStorage.getItem(MARKA_KAYIT) || "[]") || []; } catch (e) { ekMarkalar = []; }
+  var MARKALAR = [];
+  function markalariBirlestir() {
+    MARKALAR = SABIT_MARKALAR.concat(ekMarkalar.map(function (m) {
+      return { id: m.id, ad: m.ad, logo: m.logo || "", renk: m.renk || "#1e40af", carpan: +m.carpan || 1, ozel: {}, gizle: [], ek: true };
+    }));
+  }
+  function ekMarkaKaydet() {
+    try { localStorage.setItem(MARKA_KAYIT, JSON.stringify(ekMarkalar)); return true; }
+    catch (e) { alert("Kaydedilemedi: telefon hafızası dolu olabilir. Daha küçük bir logo deneyin."); return false; }
+  }
+  markalariBirlestir();
   var PARCALAR = window.PARCALAR || [];
   var ISCILIK = window.ISCILIK || [];
   var PB = A.paraBirimi || "₺";
@@ -49,6 +63,7 @@
 
   /* ---------- LOGO ---------- */
   function logoHTML(m, buyuk) {
+    if (!m.logo) return '<span class="logo yedek' + (buyuk ? " buyuk" : "") + '"><span style="color:' + esc(m.renk || "#1e40af") + '">' + esc(m.ad) + "</span></span>";
     return '<span class="logo' + (buyuk ? " buyuk" : "") + '" data-ad="' + esc(m.ad) + '" data-renk="' + esc(m.renk || "#1e40af") + '">' +
       '<img src="' + esc(m.logo) + '" alt="' + esc(m.ad) + ' logo" loading="lazy"></span>';
   }
@@ -63,11 +78,15 @@
 
   /* ---------- MARKA SEÇİCİ ---------- */
   var mBtn = $("markaBtn"), mList = $("markaList"), mSel = $("markaSelect");
-  mSel.innerHTML = '<option value="">Marka seçin…</option>' +
-    MARKALAR.map(function (m) { return '<option value="' + m.id + '">' + esc(m.ad) + "</option>"; }).join("");
-  mList.innerHTML = MARKALAR.map(function (m) {
-    return '<li role="option" data-id="' + m.id + '" aria-selected="false">' + logoHTML(m) + '<span class="mad">' + esc(m.ad) + "</span></li>";
-  }).join("");
+  function markaListeCiz() {
+    mSel.innerHTML = '<option value="">Marka seçin…</option>' +
+      MARKALAR.map(function (m) { return '<option value="' + esc(m.id) + '">' + esc(m.ad) + "</option>"; }).join("");
+    mList.innerHTML = MARKALAR.map(function (m) {
+      return '<li role="option" data-id="' + esc(m.id) + '" aria-selected="false">' + logoHTML(m) + '<span class="mad">' + esc(m.ad) + "</span>" +
+        (m.ek ? '<button type="button" class="marka-sil" data-sil="' + esc(m.id) + '" aria-label="' + esc(m.ad) + ' markasını sil">✕</button>' : "") + "</li>";
+    }).join("") + '<li class="yeni-marka" data-yeni="1">＋ Listede olmayan marka ekle</li>';
+  }
+  markaListeCiz();
 
   var aktifIdx = -1;
   function listeAc(ac) {
@@ -88,15 +107,75 @@
     if (["ArrowDown", "ArrowUp"].includes(e.key)) {
       e.preventDefault();
       if (mList.hidden) return listeAc(true);
-      aktifIdx = (aktifIdx + (e.key === "ArrowDown" ? 1 : -1) + MARKALAR.length) % MARKALAR.length; vurgula();
+      var n = MARKALAR.length + 1;
+      aktifIdx = (aktifIdx + (e.key === "ArrowDown" ? 1 : -1) + n) % n; vurgula();
     } else if (e.key === "Enter" && !mList.hidden) {
-      e.preventDefault(); markaSec(MARKALAR[aktifIdx].id); listeAc(false);
+      e.preventDefault(); listeAc(false);
+      if (aktifIdx >= MARKALAR.length) modalAc(); else markaSec(MARKALAR[aktifIdx].id);
     } else if (e.key === "Escape") listeAc(false);
   });
   mList.addEventListener("click", function (e) {
+    var silBtn = e.target.closest("[data-sil]");
+    if (silBtn) { e.stopPropagation(); markaSil(silBtn.dataset.sil); return; }
     var li = e.target.closest("li"); if (!li) return;
-    markaSec(li.dataset.id); listeAc(false); mBtn.focus();
+    listeAc(false);
+    if (li.dataset.yeni) return modalAc();
+    markaSec(li.dataset.id); mBtn.focus();
   });
+
+  /* ---------- YENİ MARKA EKLE ---------- */
+  var modal = $("markaModal"), yeniLogo = "";
+  function modalAc() {
+    $("markaForm").reset(); yeniLogo = ""; $("ymOnizleme").innerHTML = "Logo yok";
+    modal.hidden = false; document.body.classList.add("modal-acik");
+    setTimeout(function () { $("ymAd").focus(); }, 50);
+  }
+  function modalKapat() { modal.hidden = true; document.body.classList.remove("modal-acik"); }
+  modal.addEventListener("click", function (e) { if (e.target === modal || e.target.closest("[data-kapat]")) modalKapat(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modal.hidden) modalKapat(); });
+
+  // seçilen logoyu küçültüp telefona kaydedilebilir hale getir
+  $("ymLogo").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var olcek = Math.min(1, 360 / img.width, 140 / img.height);
+        var c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(img.width * olcek)); c.height = Math.max(1, Math.round(img.height * olcek));
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        yeniLogo = c.toDataURL("image/png");
+        $("ymOnizleme").innerHTML = '<img src="' + yeniLogo + '" alt="Logo önizleme">';
+      };
+      img.onerror = function () { alert("Bu resim açılamadı."); };
+      img.src = r.result;
+    };
+    r.readAsDataURL(f);
+  });
+
+  $("markaForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var ad = $("ymAd").value.trim(); if (!ad) return;
+    if (MARKALAR.some(function (m) { return m.ad.toLocaleLowerCase("tr") === ad.toLocaleLowerCase("tr"); }))
+      return alert("Bu marka zaten listede.");
+    var yeni = { id: "ek_" + Date.now(), ad: ad, logo: yeniLogo, renk: $("ymRenk").value, carpan: Math.max(0.1, +$("ymCarpan").value || 1) };
+    ekMarkalar.push(yeni);
+    if (!ekMarkaKaydet()) { ekMarkalar.pop(); return; }
+    markalariBirlestir(); markaListeCiz(); modalKapat();
+    markaSec(yeni.id);
+  });
+
+  function markaSil(id) {
+    var m = markaBul(id); if (!m || !m.ek) return;
+    if (!confirm(m.ad + " markası silinsin mi?")) return;
+    ekMarkalar = ekMarkalar.filter(function (x) { return x.id !== id; });
+    ekMarkaKaydet(); markalariBirlestir(); markaListeCiz();
+    if (durum.marka === id) {
+      durum.marka = ""; durum.kalemler = durum.kalemler.filter(function (x) { return x.tur !== "parca"; }); kaydet();
+    }
+    ciz();
+  }
   document.addEventListener("click", function (e) { if (!$("mselect").contains(e.target)) listeAc(false); });
 
   function markaSec(id) {
@@ -289,7 +368,7 @@
     $("yazdirAlan").innerHTML =
       '<div class="ust"><div><h2 style="margin:0">' + esc(A.firmaAdi || "") + "</h2><div>Yedek Parça & İşçilik Teklifi</div><div>Tel: " +
       esc(A.telefon || "") + " · " + new Date().toLocaleDateString("tr-TR") + "</div></div>" +
-      (m ? '<div style="text-align:right"><img src="' + esc(m.logo) + '" alt="" onerror="this.remove()"><div><b>' + esc(m.ad) + "</b></div></div>" : "") +
+      (m ? '<div style="text-align:right">' + (m.logo ? '<img src="' + esc(m.logo) + '" alt="" onerror="this.remove()">' : "") + '<div><b>' + esc(m.ad) + "</b></div></div>" : "") +
       "</div><table><thead><tr><th>#</th><th>Kalem</th><th>Tür</th><th class='r'>Adet</th><th class='r'>Birim</th><th class='r'>Tutar</th></tr></thead><tbody>" +
       satirlar + "</tbody><tfoot>" + alt + "</tfoot></table>" +
       '<p style="font-size:12px;margin-top:14px">Fiyatlar bilgi amaçlıdır; arıza tespitinden sonra kesinleşir.</p>';
