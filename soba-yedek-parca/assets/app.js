@@ -7,6 +7,21 @@
   var duzen = {};
   try { duzen = JSON.parse(localStorage.getItem(DUZEN_KAYIT) || "{}") || {}; } catch (e) { duzen = {}; }
   var A, PARCALAR, ISCILIK, PB;
+  // bozuk / elle değiştirilmiş veriyi temizle; geçersizse null döner
+  function duzenDogrula(d) {
+    if (!d || typeof d !== "object" || Array.isArray(d)) return null;
+    var kalemOk = function (l, kat) {
+      return Array.isArray(l) && l.every(function (x) {
+        return x && typeof x === "object" && typeof x.id === "string" && typeof x.ad === "string" && isFinite(+x.fiyat) && (!kat || x.kategori == null || typeof x.kategori === "string");
+      });
+    };
+    if (d.parcalar != null && !kalemOk(d.parcalar, true)) return null;
+    if (d.iscilik != null && !kalemOk(d.iscilik)) return null;
+    if (d.ayarlar != null && (typeof d.ayarlar !== "object" || Array.isArray(d.ayarlar))) return null;
+    if (d.markalar != null && (typeof d.markalar !== "object" || Array.isArray(d.markalar))) return null;
+    return d;
+  }
+  duzen = duzenDogrula(duzen) || {};
   function duzenUygula() {
     A = Object.assign({}, window.AYARLAR || {}, duzen.ayarlar || {});
     PARCALAR = duzen.parcalar ? kopya(duzen.parcalar) : kopya(window.PARCALAR || []);
@@ -17,7 +32,10 @@
   var SABIT_MARKALAR = window.MARKALAR || [];
   var MARKA_KAYIT = "sobaMarkalar_v1";
   var ekMarkalar = [];
-  try { ekMarkalar = JSON.parse(localStorage.getItem(MARKA_KAYIT) || "[]") || []; } catch (e) { ekMarkalar = []; }
+  function ekMarkaDogrula(l) {
+    return Array.isArray(l) ? l.filter(function (m) { return m && typeof m.id === "string" && typeof m.ad === "string" && m.ad.trim(); }) : null;
+  }
+  try { ekMarkalar = ekMarkaDogrula(JSON.parse(localStorage.getItem(MARKA_KAYIT) || "[]")) || []; } catch (e) { ekMarkalar = []; }
   var MARKALAR = [];
   function markalariBirlestir() {
     var mo = duzen.markalar || {};
@@ -54,7 +72,10 @@
   try {
     var k = JSON.parse(localStorage.getItem(KAYIT) || "null");
     if (k && Array.isArray(k.kalemler)) {
-      durum.marka = k.marka || ""; durum.kalemler = k.kalemler;
+      durum.marka = typeof k.marka === "string" ? k.marka : "";
+      durum.kalemler = k.kalemler.filter(function (x) {
+        return x && typeof x.key === "string" && typeof x.ad === "string" && isFinite(+x.fiyat) && +x.adet > 0;
+      });
       durum.indirim = +k.indirim || 0; durum.kdv = !!k.kdv;
     }
   } catch (e) {}
@@ -67,11 +88,19 @@
   }
 
   var markaBul = function (id) { return MARKALAR.find(function (m) { return m.id === id; }); };
-  if (durum.marka && !markaBul(durum.marka)) durum.marka = "";
+  if (durum.marka && !markaBul(durum.marka)) {
+    durum.marka = "";
+    durum.kalemler = durum.kalemler.filter(function (x) { return x.tur !== "parca"; });
+  }
 
+  // çarpan 1 ise fiyat aynen kalır; değilse 10 TL'ye yuvarlanır
+  function carpanli(fiyat, carpan) {
+    var f = +fiyat || 0, c = +carpan || 1;
+    return c === 1 ? f : Math.round((f * c) / 10) * 10;
+  }
   function parcaFiyat(p, m) {
     if (m.ozel && m.ozel[p.id] != null) return +m.ozel[p.id];
-    return Math.round((p.fiyat * (m.carpan || 1)) / 10) * 10;
+    return carpanli(p.fiyat, m.carpan);
   }
   function markaParcalari(m) {
     return PARCALAR.filter(function (p) { return !(m.gizle || []).includes(p.id); })
@@ -205,7 +234,7 @@
   }
 
   /* ---------- SEKME / ARAMA ---------- */
-  document.querySelectorAll(".tab").forEach(function (b) {
+  document.querySelectorAll(".tab[data-tab]").forEach(function (b) {
     b.addEventListener("click", function () { durum.sekme = b.dataset.tab; ciz(); });
   });
   $("arama").addEventListener("input", function (e) { durum.arama = e.target.value; listeCiz(); });
@@ -339,7 +368,7 @@
     if (m) {
       $("seciliMarka").innerHTML = logoHTML(m, true) + "<div><small>Seçili marka</small><b>" + esc(m.ad) + " Yedek Parçaları</b></div>";
     }
-    document.querySelectorAll(".tab").forEach(function (b) { b.classList.toggle("active", b.dataset.tab === durum.sekme); });
+    document.querySelectorAll(".tab[data-tab]").forEach(function (b) { b.classList.toggle("active", b.dataset.tab === durum.sekme); });
     $("tab-parca").hidden = durum.sekme !== "parca";
     $("tab-iscilik").hidden = durum.sekme !== "iscilik";
     listeCiz();
@@ -455,7 +484,7 @@
         h += '<label class="alan">' + esc(mh.m.ad) + ' fiyat çarpanı' + satirInput("", mh.carpan, 'data-carpan="1" type="number" min="0.1" max="5" step="0.05" inputmode="decimal"') + "</label>" +
           '<p class="ipucu">Çarpan 1 = ana fiyat, 1.10 = %10 pahalı. Bir parçaya elle fiyat yazarsan çarpan o parçaya uygulanmaz. Boş bırakırsan otomatik hesaplanır.</p>' +
           taslak.parcalar.map(function (p) {
-            var oto = Math.round(((+p.fiyat || 0) * mh.carpan) / 10) * 10;
+            var oto = carpanli(p.fiyat, mh.carpan);
             var deger = mh.ozel[p.id] != null ? mh.ozel[p.id] : "";
             return '<div class="ed-satir"><div class="ed-ad"><b>' + esc(p.ad) + '</b><small>Otomatik: ' + tl(oto) + "</small></div>" +
               '<div class="ed-fiyat">' + satirInput("", deger, 'data-mo="' + esc(p.id) + '" type="number" min="0" inputmode="numeric" placeholder="' + oto + '"') + "<span>₺</span></div></div>";
@@ -469,10 +498,15 @@
             '<button type="button" class="ed-sil" data-i-sil="' + i + '" aria-label="Sil">🗑</button></div>';
         }).join("") +
         '<button type="button" class="btn ghost tam" id="iscilikEkleBtn">+ Yeni işçilik ekle</button>';
-    } else if (ayarSekme === "yedek") {
-      h = '<p class="ipucu">Fiyatların ve eklediğin markalar bu telefonun tarayıcısında saklanır. Tarayıcı verisi silinirse kaybolmasın diye ara ara yedek dosyası indir.</p>' +
-        '<button type="button" class="btn tam" id="yedekIndir">⬇ Yedek dosyasını indir</button>' +
-        '<label class="btn ghost tam dosya-btn">⬆ Yedekten geri yükle<input type="file" id="yedekYukle" accept=".json,application/json" hidden></label>' +
+    } else if (ayarSekme === "aktar") {
+      h = '<div class="aktar-kart"><h3>⬇ Dışa Aktar</h3><p class="ipucu">Tüm ayarların (fiyatlar, işçilikler, markaya özel fiyatlar, eklediğin markalar, firma bilgileri) tek bir dosyaya kaydedilir. ' +
+          'Bu dosyayı saklarsan tarayıcı verisi silinse de kaybolmaz; başka telefona da taşıyabilirsin.</p>' +
+          '<button type="button" class="btn tam" id="disaAktar">Ayarları Dışa Aktar (dosya indir)</button>' +
+          (navigator.canShare ? '<button type="button" class="btn ghost tam" id="disaPaylas">Dışa Aktar ve Paylaş (WhatsApp, Drive…)</button>' : "") +
+        "</div>" +
+        '<div class="aktar-kart"><h3>⬆ İçe Aktar</h3><p class="ipucu">Daha önce dışa aktardığın <b>.json</b> dosyasını seç; ayarların bu sayfaya yüklenir.</p>' +
+          '<label class="btn tam dosya-btn">Ayarları İçe Aktar (dosya seç)<input type="file" id="iceAktar" hidden></label>' +
+        "</div>" +
         '<button type="button" class="btn tehlike tam" id="sifirla">Varsayılan fiyatlara dön</button>';
     }
     $("ayarIcerik").innerHTML = h;
@@ -490,7 +524,7 @@
       var mh = markaHesap(fiyatMarka);
       $("ayarIcerik").querySelectorAll("[data-mo]").forEach(function (inp) {
         var p = taslak.parcalar.find(function (x) { return x.id === inp.dataset.mo; });
-        var oto = Math.round(((+p.fiyat || 0) * mh.carpan) / 10) * 10;
+        var oto = carpanli(p.fiyat, mh.carpan);
         inp.placeholder = oto;
         inp.closest(".ed-satir").querySelector("small").textContent = "Otomatik: " + tl(oto);
       });
@@ -502,7 +536,7 @@
   });
   $("ayarIcerik").addEventListener("change", function (e) {
     if (e.target.id === "fiyatMarkaSec") { fiyatMarka = e.target.value; ayarCiz(); }
-    if (e.target.id === "yedekYukle") yedekYukle(e.target.files && e.target.files[0]);
+    if (e.target.id === "iceAktar") { iceAktar(e.target.files && e.target.files[0]); e.target.value = ""; }
   });
   $("ayarIcerik").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
@@ -519,7 +553,8 @@
     } else if (b.dataset.iSil != null) {
       var x = taslak.iscilik[+b.dataset.iSil];
       if (confirm('"' + (x.ad || "Bu işçilik") + '" silinsin mi?')) { taslak.iscilik.splice(+b.dataset.iSil, 1); ayarCiz(); }
-    } else if (b.id === "yedekIndir") yedekIndir();
+    } else if (b.id === "disaAktar") disaAktar(false);
+    else if (b.id === "disaPaylas") disaAktar(true);
     else if (b.id === "sifirla") {
       if (!confirm("Tüm fiyat ve ayar değişikliklerin silinip varsayılana dönülsün mü?\n(Eklediğin markalar kalır)")) return;
       duzen = {}; try { localStorage.removeItem(DUZEN_KAYIT); } catch (e2) {}
@@ -571,28 +606,51 @@
     bildir("Kaydedildi ✓");
   });
 
-  function yedekIndir() {
-    var veri = { surum: 1, tarih: new Date().toISOString(), duzen: duzen, ekMarkalar: ekMarkalar };
-    var blob = new Blob([JSON.stringify(veri, null, 2)], { type: "application/json" });
+  function aktarDosyasi() {
+    var veri = { tur: "soba-fiyat-ayarlari", surum: 1, tarih: new Date().toISOString(), duzen: duzen, ekMarkalar: ekMarkalar };
+    var ad = "soba-fiyat-ayarlari-" + new Date().toISOString().slice(0, 10) + ".json";
+    return { ad: ad, metin: JSON.stringify(veri, null, 2) };
+  }
+  function disaAktar(paylas) {
+    var d = aktarDosyasi();
+    if (paylas) {
+      try {
+        var dosya = new File([d.metin], d.ad, { type: "application/json" });
+        if (navigator.canShare && navigator.canShare({ files: [dosya] })) {
+          navigator.share({ files: [dosya], title: "Soba fiyat ayarları" }).catch(function () {});
+          return;
+        }
+      } catch (e) {}
+      alert("Bu telefonda paylaşım desteklenmiyor, dosya indirilecek.");
+    }
     var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "soba-fiyat-yedek-" + new Date().toISOString().slice(0, 10) + ".json";
+    a.href = URL.createObjectURL(new Blob([d.metin], { type: "application/json" }));
+    a.download = d.ad;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    bildir("Dışa aktarıldı ✓ (İndirilenler klasörü)");
   }
-  function yedekYukle(f) {
+  function iceAktar(f) {
     if (!f) return;
     var r = new FileReader();
     r.onload = function () {
       try {
         var v = JSON.parse(r.result);
-        if (!v || typeof v.duzen !== "object") throw 0;
-        if (!confirm("Yedek yüklenecek, mevcut fiyatların yerine geçecek. Devam?")) return;
-        duzen = v.duzen || {}; duzenKaydet();
-        if (Array.isArray(v.ekMarkalar)) { ekMarkalar = v.ekMarkalar; ekMarkaKaydet(); }
-        degisiklikleriYansit(); ayarKapat(); bildir("Yedek yüklendi ✓");
-      } catch (e) { alert("Bu dosya geçerli bir yedek değil."); }
+        var yeniDuzen = v && duzenDogrula(v.duzen);
+        if (!yeniDuzen) throw 0;
+        var yeniEk = v.ekMarkalar != null ? ekMarkaDogrula(v.ekMarkalar) : null;
+        if (v.ekMarkalar != null && !yeniEk) throw 0;
+      } catch (e) {
+        return alert("Bu dosya geçerli bir ayar dosyası değil.\nDışa Aktar ile oluşturulan .json dosyasını seçmelisin.");
+      }
+      if (!confirm("Ayarlar içe aktarılacak ve şu anki fiyatların yerine geçecek. Devam edilsin mi?")) return;
+      try {
+        duzen = yeniDuzen; duzenKaydet();
+        if (yeniEk) { ekMarkalar = yeniEk; ekMarkaKaydet(); }
+        degisiklikleriYansit(); ayarKapat(); bildir("İçe aktarıldı ✓");
+      } catch (e) { alert("İçe aktarma sırasında hata oldu: " + (e && e.message || e)); }
     };
+    r.onerror = function () { alert("Dosya okunamadı."); };
     r.readAsText(f);
   }
 

@@ -232,3 +232,6 @@ body.modal-acik{overflow:hidden}
 .dosya-btn{display:block;text-align:center}
 .bildirim{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:80;background:var(--metin);color:#fff;padding:10px 18px;border-radius:999px;font-weight:600;box-shadow:var(--golge)}
 .bildirim[hidden]{display:none}
+.aktar-kart{border:1px solid var(--cizgi);border-radius:14px;padding:14px;margin-top:12px}
+.aktar-kart h3{margin:0;font-size:17px}
+.aktar-kart .ipucu{margin-top:6px}
